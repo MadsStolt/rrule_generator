@@ -78,12 +78,12 @@ class Monthly extends StatelessWidget implements Period {
   @override
   String getRRule() {
     if (monthTypeNotifier.value == 0) {
-      final byMonthDay = dayNotifier.value;
+      final byMonthDay = dayNotifier.value == 32 ? -1 : dayNotifier.value; // Handle "Last day"
       final interval = int.tryParse(intervalController.text) ?? 0;
       return 'FREQ=MONTHLY;BYMONTHDAY=$byMonthDay;INTERVAL=${interval > 0 ? interval : 1}';
     } else {
-      final byDay = weekdaysShort[weekdayNotifier.value];
-      final bySetPos = (monthDayNotifier.value < 4) ? monthDayNotifier.value + 1 : -1;
+      final byDay = weekdaysShort[weekdayNotifier.value]; // e.g., "MO" for Monday
+      final bySetPos = (monthDayNotifier.value < 4) ? monthDayNotifier.value + 1 : -1; // Week position
       final interval = int.tryParse(intervalController.text) ?? 0;
       return 'FREQ=MONTHLY;INTERVAL=${interval > 0 ? interval : 1};'
           'BYDAY=$byDay;BYSETPOS=$bySetPos';
@@ -146,14 +146,26 @@ class Monthly extends StatelessWidget implements Period {
                           onChange();
                         },
                         items: List.generate(
-                          31,
-                          (index) => DropdownMenuItem(
-                            value: index + 1,
-                            child: Text(
-                              '${index + 1}',
-                              style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
-                            ),
-                          ),
+                          32, // One extra item for the "Last" option
+                          (index) {
+                            if (index == 31) {
+                              return DropdownMenuItem(
+                                value: 32, // Use a distinct value for "Last"
+                                child: Text(
+                                  'Last',
+                                  style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
+                                ),
+                              );
+                            } else {
+                              return DropdownMenuItem(
+                                value: index + 1,
+                                child: Text(
+                                  '${index + 1}',
+                                  style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
+                                ),
+                              );
+                            }
+                          },
                         ),
                       ),
                     ),
