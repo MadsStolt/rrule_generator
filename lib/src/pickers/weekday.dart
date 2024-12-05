@@ -39,17 +39,19 @@ class WeekdayPicker extends StatelessWidget {
                       alignment: Alignment.center,
                       height: 50,
                       decoration: BoxDecoration(
-                          color: value
-                              ? config.weekdaySelectedBackgroundColor
-                              : config.weekdayBackgroundColor,
-                          borderRadius: BorderRadius.circular(5)),
+                        color: value
+                            ? Theme.of(context).colorScheme.primary // Use theme's primary color
+                            : Theme.of(context).colorScheme.surface, // Use surface color
+                        borderRadius: BorderRadius.circular(5),
+                      ),
                       child: FittedBox(
                         child: Text(
                           weekday,
-                          style: config.textStyle.copyWith(
-                              color: value
-                                  ? config.weekdaySelectedColor
-                                  : config.weekdayColor),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: value
+                                    ? Theme.of(context).colorScheme.onPrimary // Text color on selected
+                                    : Theme.of(context).colorScheme.onSurface, // Text color on default
+                              ),
                         ),
                       ),
                     ),

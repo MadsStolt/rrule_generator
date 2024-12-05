@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:rrule_generator/localizations/english.dart';
 import 'package:rrule_generator/localizations/text_delegate.dart';
-import 'package:rrule_generator/src/periods/period.dart';
-import 'package:rrule_generator/src/pickers/exclude_dates.dart';
-import 'package:rrule_generator/src/pickers/interval.dart';
-import 'package:rrule_generator/src/periods/yearly.dart';
-import 'package:rrule_generator/src/periods/monthly.dart';
-import 'package:rrule_generator/src/periods/weekly.dart';
 import 'package:rrule_generator/src/periods/daily.dart';
+import 'package:rrule_generator/src/periods/monthly.dart';
+import 'package:rrule_generator/src/periods/period.dart';
+import 'package:rrule_generator/src/periods/weekly.dart';
+import 'package:rrule_generator/src/periods/yearly.dart';
+import 'package:rrule_generator/src/pickers/exclude_dates.dart';
 import 'package:rrule_generator/src/pickers/helpers.dart';
-import 'package:intl/intl.dart';
+import 'package:rrule_generator/src/pickers/interval.dart';
 import 'package:rrule_generator/src/rrule_generator_config.dart';
 
 class RRuleGenerator extends StatelessWidget {
@@ -26,14 +26,7 @@ class RRuleGenerator extends StatelessWidget {
   final List<Period> periodWidgets = [];
   late final ExcludeDates? _excludeDatesPicker;
 
-  RRuleGenerator(
-      {super.key,
-      RRuleGeneratorConfig? config,
-      this.textDelegate = const EnglishRRuleTextDelegate(),
-      this.onChange,
-      this.initialRRule = '',
-      this.withExcludeDates = false,
-      this.initialDate}) {
+  RRuleGenerator({super.key, RRuleGeneratorConfig? config, this.textDelegate = const EnglishRRuleTextDelegate(), this.onChange, this.initialRRule = '', this.withExcludeDates = false, this.initialDate}) {
     this.config = config ?? RRuleGeneratorConfig();
 
     periodWidgets.addAll([
@@ -101,8 +94,7 @@ class RRuleGenerator extends StatelessWidget {
       final dateIndex = initialRRule.indexOf('UNTIL=') + 6;
       final dateEnd = initialRRule.indexOf(';', dateIndex);
       pickedDateNotifier.value = DateTime.parse(
-        initialRRule.substring(
-            dateIndex, dateEnd == -1 ? initialRRule.length : dateEnd),
+        initialRRule.substring(dateIndex, dateEnd == -1 ? initialRRule.length : dateEnd),
       );
     }
   }
@@ -127,8 +119,7 @@ class RRuleGenerator extends StatelessWidget {
     final pickedDate = pickedDateNotifier.value;
 
     final day = pickedDate.day > 9 ? '${pickedDate.day}' : '0${pickedDate.day}';
-    final month =
-        pickedDate.month > 9 ? '${pickedDate.month}' : '0${pickedDate.month}';
+    final month = pickedDate.month > 9 ? '${pickedDate.month}' : '0${pickedDate.month}';
 
     return 'RRULE:${periodWidgets[frequencyNotifier.value].getRRule()};UNTIL=${pickedDate.year}$month$day$excludeDates';
   }
@@ -183,8 +174,7 @@ class RRuleGenerator extends StatelessWidget {
                               child: buildDropdown(
                                 child: ValueListenableBuilder(
                                   valueListenable: countTypeNotifier,
-                                  builder: (context, countType, child) =>
-                                      DropdownButton(
+                                  builder: (context, countType, child) => DropdownButton(
                                     isExpanded: true,
                                     value: countType,
                                     onChanged: (newCountType) {
@@ -248,39 +238,28 @@ class RRuleGenerator extends StatelessWidget {
                                       style: config.textStyle,
                                       child: ValueListenableBuilder(
                                         valueListenable: pickedDateNotifier,
-                                        builder: (context, pickedDate, child) =>
-                                            OutlinedButton(
+                                        builder: (context, pickedDate, child) => OutlinedButton(
                                           onPressed: () async {
                                             final picked = await showDatePicker(
                                               context: context,
                                               locale: Locale(
-                                                textDelegate.locale
-                                                    .split('-')[0],
-                                                textDelegate.locale
-                                                        .contains('-')
-                                                    ? textDelegate.locale
-                                                        .split('-')[1]
-                                                    : '',
+                                                textDelegate.locale.split('-')[0],
+                                                textDelegate.locale.contains('-') ? textDelegate.locale.split('-')[1] : '',
                                               ),
                                               initialDate: pickedDate,
-                                              firstDate:
-                                                  DateTime.utc(2020, 10, 24),
+                                              firstDate: DateTime.utc(2020, 10, 24),
                                               lastDate: DateTime(2100),
                                             );
 
-                                            if (picked != null &&
-                                                picked != pickedDate) {
+                                            if (picked != null && picked != pickedDate) {
                                               pickedDateNotifier.value = picked;
                                               valueChanged();
                                             }
                                           },
                                           style: OutlinedButton.styleFrom(
-                                            side: const BorderSide(
-                                              color: Colors.black,
-                                            ),
+                                            side: BorderSide(color: Theme.of(context).colorScheme.onPrimary),
                                             shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
+                                              borderRadius: BorderRadius.circular(8),
                                             ),
                                             padding: const EdgeInsets.symmetric(
                                               vertical: 24,
@@ -292,8 +271,7 @@ class RRuleGenerator extends StatelessWidget {
                                               DateFormat.yMd(
                                                 textDelegate.locale,
                                               ).format(pickedDate),
-                                              style: config.textStyle.copyWith(
-                                                  color: Colors.black),
+                                              style: config.textStyle,
                                               textAlign: TextAlign.center,
                                             ),
                                           ),
