@@ -24,14 +24,6 @@ class _IntervalPickerState extends State<IntervalPicker> {
   Widget build(BuildContext context) => TextField(
         controller: widget.controller,
         keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.onPrimary),
-            borderRadius: BorderRadius.all(
-              widget.config.textFieldBorderRadius,
-            ),
-          ),
-        ),
         inputFormatters: [
           FilteringTextInputFormatter.digitsOnly,
         ],

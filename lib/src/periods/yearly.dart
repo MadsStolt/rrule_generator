@@ -24,9 +24,7 @@ class Yearly extends StatelessWidget implements Period {
   final monthNotifier = ValueNotifier(DateTime.now().month);
   final dayNotifier = ValueNotifier(DateTime.now().day);
 
-  Yearly(this.config, this.textDelegate, this.onChange, this.initialRRule,
-      this.initialDate,
-      {super.key}) {
+  Yearly(this.config, this.textDelegate, this.onChange, this.initialRRule, this.initialDate, {super.key}) {
     if (initialRRule.contains('YEARLY')) {
       handleInitialRRule();
     } else {
@@ -41,8 +39,7 @@ class Yearly extends StatelessWidget implements Period {
     if (initialRRule.contains('BYMONTHDAY')) {
       monthTypeNotifier.value = 0;
       final dayIndex = initialRRule.indexOf('BYMONTHDAY=') + 11;
-      final day = initialRRule.substring(
-          dayIndex, dayIndex + (initialRRule.length > dayIndex + 1 ? 2 : 1));
+      final day = initialRRule.substring(dayIndex, dayIndex + (initialRRule.length > dayIndex + 1 ? 2 : 1));
       if (day.length == 1 || day[1] != ';') {
         dayNotifier.value = int.parse(day);
       } else {
@@ -53,8 +50,7 @@ class Yearly extends StatelessWidget implements Period {
 
       if (initialRRule.contains('BYSETPOS=')) {
         final monthDayIndex = initialRRule.indexOf('BYSETPOS=') + 9;
-        final monthDay =
-            initialRRule.substring(monthDayIndex, monthDayIndex + 1);
+        final monthDay = initialRRule.substring(monthDayIndex, monthDayIndex + 1);
 
         if (monthDay == '-') {
           monthDayNotifier.value = 4;
@@ -73,8 +69,7 @@ class Yearly extends StatelessWidget implements Period {
 
     if (initialRRule.contains('BYMONTH=')) {
       final monthIndex = initialRRule.indexOf('BYMONTH=') + 8;
-      final month = initialRRule.substring(monthIndex,
-          monthIndex + (initialRRule.length > monthIndex + 1 ? 2 : 1));
+      final month = initialRRule.substring(monthIndex, monthIndex + (initialRRule.length > monthIndex + 1 ? 2 : 1));
       if (month.length == 1 || month[1] != ';') {
         monthNotifier.value = int.parse(month);
       } else {
@@ -92,8 +87,7 @@ class Yearly extends StatelessWidget implements Period {
     } else {
       final byMonth = monthNotifier.value;
       final byDay = weekdaysShort[weekdayNotifier.value];
-      final bySetPos =
-          (monthDayNotifier.value < 4) ? monthDayNotifier.value + 1 : -1;
+      final bySetPos = (monthDayNotifier.value < 4) ? monthDayNotifier.value + 1 : -1;
       return 'FREQ=YEARLY;BYMONTH=$byMonth;BYDAY=$byDay;BYSETPOS=$bySetPos';
     }
   }
@@ -110,7 +104,7 @@ class Yearly extends StatelessWidget implements Period {
               onChange();
             },
             title: textDelegate.byDayInMonth,
-            style: config.textStyle,
+            style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
             value: monthType == 0,
             child: buildContainer(
               child: Row(
@@ -118,7 +112,7 @@ class Yearly extends StatelessWidget implements Period {
                   Expanded(
                     child: buildElement(
                       title: textDelegate.months,
-                      style: config.textStyle,
+                      style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                       child: buildDropdown(
                         child: ValueListenableBuilder(
                           valueListenable: monthNotifier,
@@ -134,21 +128,20 @@ class Yearly extends StatelessWidget implements Period {
                               (index) {
                                 // Start with January (1)
                                 final date = DateTime(2023, index + 1, 1);
-                                final month =
-                                    DateFormat.MMMM(textDelegate.locale)
-                                        .format(date);
+                                final month = DateFormat.MMMM(textDelegate.locale).format(date);
 
                                 return DropdownMenuItem(
                                   value: index + 1,
                                   child: Text(
                                     month,
-                                    style: config.textStyle,
+                                    style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                                   ),
                                 );
                               },
                             ),
                           ),
                         ),
+                        context: context,
                       ),
                     ),
                   ),
@@ -158,7 +151,7 @@ class Yearly extends StatelessWidget implements Period {
                   Expanded(
                     child: buildElement(
                       title: textDelegate.day,
-                      style: config.textStyle,
+                      style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                       child: buildDropdown(
                         child: ValueListenableBuilder(
                           valueListenable: dayNotifier,
@@ -175,12 +168,13 @@ class Yearly extends StatelessWidget implements Period {
                                 value: index + 1,
                                 child: Text(
                                   '${index + 1}.',
-                                  style: config.textStyle,
+                                  style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                                 ),
                               ),
                             ),
                           ),
                         ),
+                        context: context,
                       ),
                     ),
                   ),
@@ -195,7 +189,7 @@ class Yearly extends StatelessWidget implements Period {
               onChange();
             },
             title: textDelegate.byNthDayInMonth,
-            style: config.textStyle,
+            style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
             value: monthType == 1,
             child: Column(
               children: [
@@ -204,7 +198,7 @@ class Yearly extends StatelessWidget implements Period {
                     Expanded(
                       child: buildElement(
                         title: textDelegate.on,
-                        style: config.textStyle,
+                        style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                         child: buildDropdown(
                           child: ValueListenableBuilder(
                             valueListenable: monthDayNotifier,
@@ -221,12 +215,13 @@ class Yearly extends StatelessWidget implements Period {
                                   value: index,
                                   child: Text(
                                     textDelegate.daysInMonth[index],
-                                    style: config.textStyle,
+                                    style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                                   ),
                                 ),
                               ),
                             ),
                           ),
+                          context: context,
                         ),
                       ),
                     ),
@@ -236,7 +231,7 @@ class Yearly extends StatelessWidget implements Period {
                     Expanded(
                       child: buildElement(
                         title: textDelegate.day,
-                        style: config.textStyle,
+                        style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                         child: buildDropdown(
                           child: ValueListenableBuilder(
                             valueListenable: weekdayNotifier,
@@ -252,21 +247,20 @@ class Yearly extends StatelessWidget implements Period {
                                 (index) {
                                   // Start with Monday as per ISO-8601 (Monday = 1, Sunday = 7)
                                   final date = DateTime(2023, 1, 2 + index);
-                                  final weekday =
-                                      DateFormat.EEEE(textDelegate.locale)
-                                          .format(date);
+                                  final weekday = DateFormat.EEEE(textDelegate.locale).format(date);
 
                                   return DropdownMenuItem(
                                     value: index,
                                     child: Text(
                                       weekday,
-                                      style: config.textStyle,
+                                      style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                                     ),
                                   );
                                 },
                               ),
                             ),
                           ),
+                          context: context,
                         ),
                       ),
                     ),
@@ -274,7 +268,7 @@ class Yearly extends StatelessWidget implements Period {
                 ),
                 buildElement(
                   title: textDelegate.of,
-                  style: config.textStyle,
+                  style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                   child: buildDropdown(
                     child: ValueListenableBuilder(
                       valueListenable: monthNotifier,
@@ -290,19 +284,19 @@ class Yearly extends StatelessWidget implements Period {
                           (index) {
                             // Start with January (1)
                             final date = DateTime(2023, index + 1, 1);
-                            final month = DateFormat.MMMM(textDelegate.locale)
-                                .format(date);
+                            final month = DateFormat.MMMM(textDelegate.locale).format(date);
                             return DropdownMenuItem(
                               value: index + 1,
                               child: Text(
                                 month,
-                                style: config.textStyle,
+                                style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                               ),
                             );
                           },
                         ),
                       ),
                     ),
+                    context: context,
                   ),
                 ),
               ],

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:rrule_generator/localizations/text_delegate.dart';
+import 'package:rrule_generator/src/periods/period.dart';
 import 'package:rrule_generator/src/pickers/helpers.dart';
 import 'package:rrule_generator/src/pickers/interval.dart';
-import 'package:rrule_generator/src/periods/period.dart';
 
 import '../rrule_generator_config.dart';
 
@@ -20,9 +20,7 @@ class Daily extends StatelessWidget implements Period {
 
   final intervalController = TextEditingController(text: '1');
 
-  Daily(this.config, this.textDelegate, this.onChange, this.initialRRule,
-      this.initialDate,
-      {super.key}) {
+  Daily(this.config, this.textDelegate, this.onChange, this.initialRRule, this.initialDate, {super.key}) {
     if (initialRRule.contains('DAILY')) handleInitialRRule();
   }
 
@@ -32,8 +30,7 @@ class Daily extends StatelessWidget implements Period {
       final intervalIndex = initialRRule.indexOf('INTERVAL=') + 9;
       int intervalEnd = initialRRule.indexOf(';', intervalIndex);
       intervalEnd = intervalEnd == -1 ? initialRRule.length : intervalEnd;
-      final interval = initialRRule.substring(
-          intervalIndex, intervalEnd == -1 ? initialRRule.length : intervalEnd);
+      final interval = initialRRule.substring(intervalIndex, intervalEnd == -1 ? initialRRule.length : intervalEnd);
       intervalController.text = interval;
     }
   }
@@ -48,7 +45,7 @@ class Daily extends StatelessWidget implements Period {
   Widget build(BuildContext context) => buildContainer(
         child: buildElement(
           title: textDelegate.every,
-          style: config.textStyle,
+          style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
           child: Row(
             children: [
               Expanded(

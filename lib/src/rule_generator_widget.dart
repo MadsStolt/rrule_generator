@@ -135,7 +135,7 @@ class RRuleGenerator extends StatelessWidget {
               buildContainer(
                 child: buildElement(
                   title: config.headerEnabled ? textDelegate.repeat : null,
-                  style: config.headerTextStyle,
+                  style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                   child: buildDropdown(
                     child: DropdownButton(
                       isExpanded: true,
@@ -150,11 +150,12 @@ class RRuleGenerator extends StatelessWidget {
                           value: index,
                           child: Text(
                             textDelegate.periods[index],
-                            style: config.textStyle,
+                            style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                           ),
                         ),
                       ),
                     ),
+                    context: context,
                   ),
                 ),
               ),
@@ -170,7 +171,7 @@ class RRuleGenerator extends StatelessWidget {
                           Expanded(
                             child: buildElement(
                               title: textDelegate.end,
-                              style: config.textStyle,
+                              style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                               child: buildDropdown(
                                 child: ValueListenableBuilder(
                                   valueListenable: countTypeNotifier,
@@ -186,26 +187,27 @@ class RRuleGenerator extends StatelessWidget {
                                         value: 0,
                                         child: Text(
                                           textDelegate.neverEnds,
-                                          style: config.textStyle,
+                                          style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                                         ),
                                       ),
                                       DropdownMenuItem(
                                         value: 1,
                                         child: Text(
                                           textDelegate.endsAfter,
-                                          style: config.textStyle,
+                                          style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                                         ),
                                       ),
                                       DropdownMenuItem(
                                         value: 2,
                                         child: Text(
                                           textDelegate.endsOnDate,
-                                          style: config.textStyle,
+                                          style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
+                                context: context,
                               ),
                             ),
                           ),
@@ -223,7 +225,7 @@ class RRuleGenerator extends StatelessWidget {
                                   return Expanded(
                                     child: buildElement(
                                       title: textDelegate.instances,
-                                      style: config.textStyle,
+                                      style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                                       child: IntervalPicker(
                                         instancesController,
                                         valueChanged,
@@ -235,7 +237,7 @@ class RRuleGenerator extends StatelessWidget {
                                   return Expanded(
                                     child: buildElement(
                                       title: textDelegate.date,
-                                      style: config.textStyle,
+                                      style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                                       child: ValueListenableBuilder(
                                         valueListenable: pickedDateNotifier,
                                         builder: (context, pickedDate, child) => OutlinedButton(
@@ -257,7 +259,7 @@ class RRuleGenerator extends StatelessWidget {
                                             }
                                           },
                                           style: OutlinedButton.styleFrom(
-                                            side: BorderSide(color: Theme.of(context).colorScheme.onPrimary),
+                                            side: BorderSide(color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black),
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(8),
                                             ),
@@ -271,7 +273,7 @@ class RRuleGenerator extends StatelessWidget {
                                               DateFormat.yMd(
                                                 textDelegate.locale,
                                               ).format(pickedDate),
-                                              style: config.textStyle,
+                                              style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                                               textAlign: TextAlign.center,
                                             ),
                                           ),

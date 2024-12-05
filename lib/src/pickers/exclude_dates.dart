@@ -13,19 +13,13 @@ class ExcludeDates extends StatefulWidget {
   final DateTime initialDate;
   final List<DateTime> excludeDates = [];
 
-  ExcludeDates(this.config, this.textDelegate, this.onChange, this.initialRRule,
-      this.initialDate,
-      {super.key});
+  ExcludeDates(this.config, this.textDelegate, this.onChange, this.initialRRule, this.initialDate, {super.key});
 
   String getRRule() {
     if (excludeDates.isEmpty) return '';
     String rrule = ';EXDATE=';
     for (int i = 0; i < excludeDates.length; i++) {
-      rrule += excludeDates[i]
-          .toIso8601String()
-          .substring(0, 19)
-          .replaceAll('-', '')
-          .replaceAll(':', '');
+      rrule += excludeDates[i].toIso8601String().substring(0, 19).replaceAll('-', '').replaceAll(':', '');
       if (i != excludeDates.length - 1) rrule += ',';
     }
     return rrule;
@@ -40,8 +34,7 @@ class _ExcludeDatesState extends State<ExcludeDates> {
     final exDateIndex = widget.initialRRule.indexOf('EXDATE=') + 7;
     if (exDateIndex == 6) return;
     final exDateEnd = widget.initialRRule.indexOf(';', exDateIndex);
-    final exDateString = widget.initialRRule.substring(
-        exDateIndex, exDateEnd == -1 ? widget.initialRRule.length : exDateEnd);
+    final exDateString = widget.initialRRule.substring(exDateIndex, exDateEnd == -1 ? widget.initialRRule.length : exDateEnd);
     final exDateList = exDateString.split(',');
     for (final exDate in exDateList) {
       widget.excludeDates.add(DateTime.parse(exDate));
@@ -59,7 +52,7 @@ class _ExcludeDatesState extends State<ExcludeDates> {
     return buildContainer(
       child: buildElement(
         title: widget.textDelegate.excludeDate,
-        style: widget.config.textStyle,
+        style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
         child: Column(
           children: [
             IconButton(
@@ -84,8 +77,7 @@ class _ExcludeDatesState extends State<ExcludeDates> {
                   for (final date in widget.excludeDates)
                     ListTile(
                       title: Text(
-                        DateFormat.yMMMd(widget.textDelegate.locale)
-                            .format(date),
+                        DateFormat.yMMMd(widget.textDelegate.locale).format(date),
                       ),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rrule_generator/localizations/text_delegate.dart';
-import 'package:rrule_generator/src/pickers/interval.dart';
 import 'package:rrule_generator/src/periods/period.dart';
+import 'package:rrule_generator/src/pickers/interval.dart';
 import 'package:rrule_generator/src/pickers/weekday.dart';
 
 import '../pickers/helpers.dart';
@@ -25,9 +25,7 @@ class Weekly extends StatelessWidget implements Period {
     (index) => ValueNotifier(false),
   );
 
-  Weekly(this.config, this.textDelegate, this.onChange, this.initialRRule,
-      this.initialDate,
-      {super.key}) {
+  Weekly(this.config, this.textDelegate, this.onChange, this.initialRRule, this.initialDate, {super.key}) {
     if (initialRRule.contains('WEEKLY')) {
       handleInitialRRule();
     } else {
@@ -41,8 +39,7 @@ class Weekly extends StatelessWidget implements Period {
       final intervalIndex = initialRRule.indexOf('INTERVAL=') + 9;
       int intervalEnd = initialRRule.indexOf(';', intervalIndex);
       intervalEnd = intervalEnd == -1 ? initialRRule.length : intervalEnd;
-      final interval = initialRRule.substring(
-          intervalIndex, intervalEnd == -1 ? initialRRule.length : intervalEnd);
+      final interval = initialRRule.substring(intervalIndex, intervalEnd == -1 ? initialRRule.length : intervalEnd);
       intervalController.text = interval;
     }
 
@@ -50,8 +47,7 @@ class Weekly extends StatelessWidget implements Period {
       final weekdayIndex = initialRRule.indexOf('BYDAY=') + 6;
       int weekdayEnd = initialRRule.indexOf(';', weekdayIndex);
       weekdayEnd = weekdayEnd == -1 ? initialRRule.length : weekdayEnd;
-      final weekdays = initialRRule.substring(
-          weekdayIndex, weekdayEnd == -1 ? initialRRule.length : weekdayEnd);
+      final weekdays = initialRRule.substring(weekdayIndex, weekdayEnd == -1 ? initialRRule.length : weekdayEnd);
       for (int i = 0; i < 7; i++) {
         if (weekdays.contains(weekdaysShort[i])) {
           weekdayNotifiers[i].value = true;
@@ -78,7 +74,7 @@ class Weekly extends StatelessWidget implements Period {
   Widget build(BuildContext context) => buildContainer(
         child: buildElement(
           title: textDelegate.every,
-          style: config.textStyle,
+          style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
           child: Column(
             children: [
               Row(
@@ -94,7 +90,7 @@ class Weekly extends StatelessWidget implements Period {
                     padding: const EdgeInsets.only(left: 8),
                     child: Text(
                       textDelegate.weeks,
-                      style: config.textStyle,
+                      style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                     ),
                   ),
                 ],

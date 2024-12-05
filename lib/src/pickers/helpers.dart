@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-Container buildDropdown({required Widget child}) {
+Container buildDropdown({required Widget child, required BuildContext context}) {
   return Container(
     decoration: BoxDecoration(
-      border: Border.all(),
+      border: Border.all(color: Theme.of(context).colorScheme.onSurface),
       borderRadius: BorderRadius.circular(8),
     ),
     width: double.maxFinite,
@@ -36,7 +36,7 @@ Column buildElement({
 
 Padding buildContainer({required Widget child}) {
   return Padding(
-    padding: const EdgeInsets.all(8),
+    padding: const EdgeInsets.symmetric(vertical: 8),
     child: child,
   );
 }
