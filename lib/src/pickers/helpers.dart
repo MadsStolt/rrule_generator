@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 
-Container buildDropdown({required Widget child, required BuildContext context}) {
-  return Container(
-    decoration: BoxDecoration(
-      border: Border.all(color: Theme.of(context).colorScheme.onSurface),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    width: double.maxFinite,
-    padding: const EdgeInsets.all(8),
-    child: DropdownButtonHideUnderline(
-      child: child,
-    ),
-  );
+Widget buildDropdown({required Widget child, required BuildContext context}) {
+  // return Container(
+  //   decoration: BoxDecoration(
+  //     border: Border.all(color: Theme.of(context).colorScheme.onSurface),
+  //     borderRadius: BorderRadius.circular(8),
+  //   ),
+  //   width: double.maxFinite,
+  //   padding: const EdgeInsets.all(8),
+  //   child: DropdownButtonHideUnderline(
+  //     child: child,
+  //   ),
+  // );
+  return child;
 }
 
 Column buildElement({

@@ -173,7 +173,6 @@ class Monthly extends StatelessWidget implements Period {
                   ),
                 ),
               ),
-              const Divider(),
               buildToggleItem(
                 title: textDelegate.byNthDayInMonth,
                 style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),

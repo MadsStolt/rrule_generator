@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:rrule_generator/localizations/english.dart';
 import 'package:rrule_generator/localizations/text_delegate.dart';
 import 'package:rrule_generator/src/periods/daily.dart';
+import 'package:rrule_generator/src/periods/hourly.dart';
 import 'package:rrule_generator/src/periods/monthly.dart';
 import 'package:rrule_generator/src/periods/period.dart';
 import 'package:rrule_generator/src/periods/weekly.dart';
@@ -22,6 +23,8 @@ class RRuleGenerator extends StatelessWidget {
   final frequencyNotifier = ValueNotifier(0);
   final countTypeNotifier = ValueNotifier(0);
   final pickedDateNotifier = ValueNotifier(DateTime.now());
+  final timeNotifier = ValueNotifier(const TimeOfDay(hour: 0, minute: 0));
+
   final instancesController = TextEditingController(text: '1');
   final List<Period> periodWidgets = [];
   late final ExcludeDates? _excludeDatesPicker;
@@ -57,7 +60,15 @@ class RRuleGenerator extends StatelessWidget {
         valueChanged,
         initialRRule,
         initialDate ?? DateTime.now(),
-      )
+      ),
+      Hourly(
+        // Added Hourly option
+        this.config,
+        textDelegate,
+        valueChanged,
+        initialRRule,
+        initialDate ?? DateTime.now(),
+      ),
     ]);
     _excludeDatesPicker = withExcludeDates
         ? ExcludeDates(
@@ -79,8 +90,10 @@ class RRuleGenerator extends StatelessWidget {
       frequencyNotifier.value = 2;
     } else if (initialRRule.contains('DAILY')) {
       frequencyNotifier.value = 3;
-    } else if (initialRRule == '') {
+    } else if (initialRRule.contains('HOURLY')) {
       frequencyNotifier.value = 4;
+    } else if (initialRRule == '') {
+      frequencyNotifier.value = 5;
     }
 
     if (initialRRule.contains('COUNT')) {
@@ -97,6 +110,28 @@ class RRuleGenerator extends StatelessWidget {
         initialRRule.substring(dateIndex, dateEnd == -1 ? initialRRule.length : dateEnd),
       );
     }
+
+    if (initialRRule.contains('BYHOUR=')) {
+      int hourIndex = initialRRule.indexOf('BYHOUR=') + 7;
+      int hourEndIndex = initialRRule.indexOf(';', hourIndex);
+      if (hourEndIndex == -1) {
+        hourEndIndex = initialRRule.length;
+      }
+      String hour = initialRRule.substring(hourIndex, hourEndIndex);
+      int hourValue = int.parse(hour);
+
+      int minuteValue = 0;
+      if (initialRRule.contains('BYMINUTE=')) {
+        int minuteIndex = initialRRule.indexOf('BYMINUTE=') + 9;
+        int minuteEndIndex = initialRRule.indexOf(';', minuteIndex);
+        if (minuteEndIndex == -1) {
+          minuteEndIndex = initialRRule.length;
+        }
+        String minute = initialRRule.substring(minuteIndex, minuteEndIndex);
+        minuteValue = int.parse(minute);
+      }
+      timeNotifier.value = TimeOfDay(hour: hourValue, minute: minuteValue);
+    }
   }
 
   void valueChanged() {
@@ -105,23 +140,42 @@ class RRuleGenerator extends StatelessWidget {
   }
 
   String getRRule() {
-    if (frequencyNotifier.value == 4) {
+    if (frequencyNotifier.value == 5) {
       return '';
     }
 
     final String excludeDates = _excludeDatesPicker?.getRRule() ?? '';
+    final time = timeNotifier.value;
+    final hour = time.hour;
+    final minute = time.minute;
+    const second = 0; // Default seconds to 0
+
+    String timePart = frequencyNotifier.value != 4 ? ';BYHOUR=$hour;BYMINUTE=$minute;BYSECOND=$second' : '';
+
+    String baseRRule = periodWidgets[frequencyNotifier.value].getRRule();
+    // Remove any existing time parts from the base RRule to avoid duplicates
+    baseRRule = baseRRule.replaceAll(RegExp(r';BYHOUR=\d{1,2}'), '');
+    baseRRule = baseRRule.replaceAll(RegExp(r';BYMINUTE=\d{1,2}'), '');
+    baseRRule = baseRRule.replaceAll(RegExp(r';BYSECOND=\d{1,2}'), '');
+
     if (countTypeNotifier.value == 0) {
-      return 'RRULE:${periodWidgets[frequencyNotifier.value].getRRule()}$excludeDates';
+      String rrule = 'RRULE:$baseRRule$timePart$excludeDates';
+      print(rrule);
+      return rrule;
     } else if (countTypeNotifier.value == 1) {
       final instances = int.tryParse(instancesController.text) ?? 0;
-      return 'RRULE:${periodWidgets[frequencyNotifier.value].getRRule()};COUNT=${instances > 0 ? instances : 1}$excludeDates';
+      String rrule = 'RRULE:$baseRRule$timePart;COUNT=$instances$excludeDates';
+      print(rrule);
+      return rrule;
     }
     final pickedDate = pickedDateNotifier.value;
 
     final day = pickedDate.day > 9 ? '${pickedDate.day}' : '0${pickedDate.day}';
     final month = pickedDate.month > 9 ? '${pickedDate.month}' : '0${pickedDate.month}';
 
-    return 'RRULE:${periodWidgets[frequencyNotifier.value].getRRule()};UNTIL=${pickedDate.year}$month$day$excludeDates';
+    String rrule = 'RRULE:$baseRRule$timePart;UNTIL=${pickedDate.year}$month$day$excludeDates';
+    print(rrule);
+    return rrule;
   }
 
   @override
@@ -145,7 +199,7 @@ class RRuleGenerator extends StatelessWidget {
                         valueChanged();
                       },
                       items: List.generate(
-                        5,
+                        6,
                         (index) => DropdownMenuItem(
                           value: index,
                           child: Text(
@@ -159,140 +213,185 @@ class RRuleGenerator extends StatelessWidget {
                   ),
                 ),
               ),
-              if (period != 4) ...[
-                const Divider(),
+              if (period != 5) ...[
                 periodWidgets[period],
-                const Divider(),
                 buildContainer(
                   child: Column(
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: buildElement(
-                              title: textDelegate.end,
-                              style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
-                              child: buildDropdown(
-                                child: ValueListenableBuilder(
-                                  valueListenable: countTypeNotifier,
-                                  builder: (context, countType, child) => DropdownButton(
-                                    isExpanded: true,
-                                    value: countType,
-                                    onChanged: (newCountType) {
-                                      countTypeNotifier.value = newCountType!;
-                                      valueChanged();
+                      if (period != 4)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: buildContainer(
+                                child: buildElement(
+                                  title: 'Time',
+                                  style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
+                                  child: ValueListenableBuilder<TimeOfDay>(
+                                    valueListenable: timeNotifier,
+                                    builder: (context, time, child) {
+                                      if (time == const TimeOfDay(hour: 0, minute: 0) && initialDate != null) {
+                                        final initialTime = TimeOfDay.fromDateTime(initialDate!);
+                                        timeNotifier.value = initialTime;
+                                        time = initialTime;
+                                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                                          valueChanged();
+                                        });
+                                      }
+                                      return TextField(
+                                        key: ValueKey(timeNotifier.value),
+                                        readOnly: true,
+                                        controller: TextEditingController(
+                                          text: time.format(context),
+                                        ),
+                                        decoration: const InputDecoration(
+                                          suffixIcon: Icon(Icons.access_time),
+                                        ),
+                                        onTap: () async {
+                                          final TimeOfDay? picked = await showTimePicker(
+                                            context: context,
+                                            initialTime: time,
+                                          );
+                                          if (picked != null) {
+                                            timeNotifier.value = picked;
+                                          }
+                                          valueChanged();
+                                        },
+                                      );
                                     },
-                                    items: [
-                                      DropdownMenuItem(
-                                        value: 0,
-                                        child: Text(
-                                          textDelegate.neverEnds,
-                                          style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
-                                        ),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 1,
-                                        child: Text(
-                                          textDelegate.endsAfter,
-                                          style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
-                                        ),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 2,
-                                        child: Text(
-                                          textDelegate.endsOnDate,
-                                          style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
-                                        ),
-                                      ),
-                                    ],
                                   ),
                                 ),
-                                context: context,
                               ),
                             ),
-                          ),
-                          ValueListenableBuilder(
-                            valueListenable: countTypeNotifier,
-                            builder: (context, countType, child) => SizedBox(
-                              width: countType == 0 ? 0 : 8,
-                            ),
-                          ),
-                          ValueListenableBuilder(
-                            valueListenable: countTypeNotifier,
-                            builder: (context, countType, child) {
-                              switch (countType) {
-                                case 1:
-                                  return Expanded(
-                                    child: buildElement(
-                                      title: textDelegate.instances,
-                                      style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
-                                      child: IntervalPicker(
-                                        instancesController,
-                                        valueChanged,
-                                        config: config,
-                                      ),
-                                    ),
-                                  );
-                                case 2:
-                                  return Expanded(
-                                    child: buildElement(
-                                      title: textDelegate.date,
-                                      style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
-                                      child: ValueListenableBuilder(
-                                        valueListenable: pickedDateNotifier,
-                                        builder: (context, pickedDate, child) => OutlinedButton(
-                                          onPressed: () async {
-                                            final picked = await showDatePicker(
-                                              context: context,
-                                              locale: Locale(
-                                                textDelegate.locale.split('-')[0],
-                                                textDelegate.locale.contains('-') ? textDelegate.locale.split('-')[1] : '',
-                                              ),
-                                              initialDate: pickedDate,
-                                              firstDate: DateTime.utc(2020, 10, 24),
-                                              lastDate: DateTime(2100),
-                                            );
-
-                                            if (picked != null && picked != pickedDate) {
-                                              pickedDateNotifier.value = picked;
-                                              valueChanged();
-                                            }
-                                          },
-                                          style: OutlinedButton.styleFrom(
-                                            side: BorderSide(color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 24,
-                                            ),
+                          ],
+                        ),
+                      buildContainer(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: buildElement(
+                                title: textDelegate.end,
+                                style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
+                                child: buildDropdown(
+                                  child: ValueListenableBuilder(
+                                    valueListenable: countTypeNotifier,
+                                    builder: (context, countType, child) => DropdownButton(
+                                      isExpanded: true,
+                                      value: countType,
+                                      onChanged: (newCountType) {
+                                        countTypeNotifier.value = newCountType!;
+                                        valueChanged();
+                                      },
+                                      items: [
+                                        DropdownMenuItem(
+                                          value: 0,
+                                          child: Text(
+                                            textDelegate.neverEnds,
+                                            style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
                                           ),
-                                          child: SizedBox(
-                                            width: double.maxFinite,
-                                            child: Text(
-                                              DateFormat.yMd(
-                                                textDelegate.locale,
-                                              ).format(pickedDate),
-                                              style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
-                                              textAlign: TextAlign.center,
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 1,
+                                          child: Text(
+                                            textDelegate.endsAfter,
+                                            style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
+                                          ),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 2,
+                                          child: Text(
+                                            textDelegate.endsOnDate,
+                                            style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  context: context,
+                                ),
+                              ),
+                            ),
+                            ValueListenableBuilder(
+                              valueListenable: countTypeNotifier,
+                              builder: (context, countType, child) => SizedBox(
+                                width: countType == 0 ? 0 : 8,
+                              ),
+                            ),
+                            ValueListenableBuilder(
+                              valueListenable: countTypeNotifier,
+                              builder: (context, countType, child) {
+                                switch (countType) {
+                                  case 1:
+                                    return Expanded(
+                                      child: buildElement(
+                                        title: textDelegate.instances,
+                                        style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
+                                        child: IntervalPicker(
+                                          instancesController,
+                                          valueChanged,
+                                          config: config,
+                                        ),
+                                      ),
+                                    );
+                                  case 2:
+                                    return Expanded(
+                                      child: buildElement(
+                                        title: textDelegate.date,
+                                        style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
+                                        child: ValueListenableBuilder(
+                                          valueListenable: pickedDateNotifier,
+                                          builder: (context, pickedDate, child) => OutlinedButton(
+                                            onPressed: () async {
+                                              final picked = await showDatePicker(
+                                                context: context,
+                                                locale: Locale(
+                                                  textDelegate.locale.split('-')[0],
+                                                  textDelegate.locale.contains('-') ? textDelegate.locale.split('-')[1] : '',
+                                                ),
+                                                initialDate: pickedDate,
+                                                firstDate: DateTime.utc(2020, 10, 24),
+                                                lastDate: DateTime(2100),
+                                              );
+
+                                              if (picked != null && picked != pickedDate) {
+                                                pickedDateNotifier.value = picked;
+                                                valueChanged();
+                                              }
+                                            },
+                                            style: OutlinedButton.styleFrom(
+                                              side: BorderSide(color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              padding: const EdgeInsets.symmetric(
+                                                vertical: 24,
+                                              ),
+                                            ),
+                                            child: SizedBox(
+                                              width: double.maxFinite,
+                                              child: Text(
+                                                DateFormat.yMd(
+                                                  textDelegate.locale,
+                                                ).format(pickedDate),
+                                                style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
+                                                textAlign: TextAlign.center,
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  );
-                                default:
-                                  return Container();
-                              }
-                            },
-                          )
-                        ],
+                                    );
+                                  default:
+                                    return Container();
+                                }
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
-              if (child != null) const Divider(),
               if (child != null) child,
             ],
           ),
