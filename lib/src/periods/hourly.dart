@@ -5,9 +5,6 @@ import 'package:rrule_generator/src/pickers/helpers.dart';
 
 import '../rrule_generator_config.dart';
 
-// The `Hourly` class is used to generate recurrence rules for hourly frequency.
-/// This is particularly useful for scenarios where an action needs to be repeated multiple times a day,
-/// such as reminding a patient to take medication at specific hours.
 class Hourly extends StatelessWidget implements Period {
   @override
   final RRuleGeneratorConfig config;
@@ -21,6 +18,7 @@ class Hourly extends StatelessWidget implements Period {
   final DateTime initialDate;
 
   final hourNotifier = ValueNotifier(0);
+  final intervalNotifier = ValueNotifier(1);
 
   Hourly(this.config, this.textDelegate, this.onChange, this.initialRRule, this.initialDate, {super.key}) {
     if (initialRRule.contains('HOURLY')) {
@@ -32,6 +30,7 @@ class Hourly extends StatelessWidget implements Period {
 
   @override
   void handleInitialRRule() {
+    // Parse the initial RRule to set the interval and hourNotifier value
     if (initialRRule.contains('INTERVAL=')) {
       int intervalIndex = initialRRule.indexOf('INTERVAL=') + 9;
       int intervalEndIndex = initialRRule.indexOf(';', intervalIndex);
@@ -39,42 +38,65 @@ class Hourly extends StatelessWidget implements Period {
         intervalEndIndex = initialRRule.length;
       }
       String interval = initialRRule.substring(intervalIndex, intervalEndIndex);
+      intervalNotifier.value = int.parse(interval);
       hourNotifier.value = int.parse(interval); // Set hourNotifier to interval value
     }
   }
 
   @override
   String getRRule() {
+    final interval = intervalNotifier.value;
     final hour = hourNotifier.value;
-    return 'FREQ=HOURLY;INTERVAL=${hour > 0 ? hour : 1}';
+    return 'FREQ=HOURLY;INTERVAL=$interval;BYHOUR=$hour';
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        buildElement(
-          title: textDelegate.every,
-          style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
-          child: Row(
-            children: [
-              DropdownButton<int>(
-                value: hourNotifier.value,
-                items: List.generate(
-                    24,
-                    (index) => DropdownMenuItem(
-                          value: index,
-                          child: Text(index.toString()),
-                        )),
-                onChanged: (value) {
-                  if (value != null) {
-                    hourNotifier.value = value;
+        buildContainer(
+          child: buildElement(
+            title: 'Hour',
+            style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
+            child: ValueListenableBuilder<int>(
+              valueListenable: hourNotifier,
+              builder: (context, hour, child) {
+                return DropdownButton<int>(
+                  value: hour,
+                  items: List.generate(
+                      24,
+                      (index) => DropdownMenuItem(
+                            value: index,
+                            child: Text(index.toString()),
+                          )),
+                  onChanged: (value) {
+                    if (value != null) {
+                      hourNotifier.value = value;
+                      onChange();
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+        buildContainer(
+          child: buildElement(
+            title: 'Interval',
+            style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
+            child: ValueListenableBuilder<int>(
+              valueListenable: intervalNotifier,
+              builder: (context, interval, child) {
+                return TextField(
+                  controller: TextEditingController(text: interval.toString()),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    intervalNotifier.value = int.tryParse(value) ?? 1;
                     onChange();
-                  }
-                },
-              ),
-              const Text('Hour(s)'),
-            ],
+                  },
+                );
+              },
+            ),
           ),
         ),
       ],

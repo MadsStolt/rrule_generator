@@ -146,7 +146,8 @@ class RRuleGenerator extends StatelessWidget {
 
     final String excludeDates = _excludeDatesPicker?.getRRule() ?? '';
     final time = timeNotifier.value;
-    final hour = time.hour;
+    final localTimeOffset = DateTime.now().timeZoneOffset.inHours;
+    final hour = (time.hour - localTimeOffset) % 24;
     final minute = time.minute;
     const second = 0; // Default seconds to 0
 
