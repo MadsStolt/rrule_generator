@@ -120,6 +120,10 @@ class RRuleGenerator extends StatelessWidget {
       String hour = initialRRule.substring(hourIndex, hourEndIndex);
       int hourValue = int.parse(hour);
 
+      // Adjust hourValue based on the local timezone offset
+      final localTimeOffset = DateTime.now().timeZoneOffset.inHours;
+      hourValue = (hourValue + localTimeOffset) % 24;
+
       int minuteValue = 0;
       if (initialRRule.contains('BYMINUTE=')) {
         int minuteIndex = initialRRule.indexOf('BYMINUTE=') + 9;
@@ -131,6 +135,9 @@ class RRuleGenerator extends StatelessWidget {
         minuteValue = int.parse(minute);
       }
       timeNotifier.value = TimeOfDay(hour: hourValue, minute: minuteValue);
+    } else {
+      //Set timenorifier to initial date time
+      timeNotifier.value = TimeOfDay.fromDateTime(initialDate!);
     }
   }
 
@@ -151,7 +158,7 @@ class RRuleGenerator extends StatelessWidget {
     final minute = time.minute;
     const second = 0; // Default seconds to 0
 
-    String timePart = frequencyNotifier.value != 4 ? ';BYHOUR=$hour;BYMINUTE=$minute;BYSECOND=$second' : '';
+    String timePart = ';BYHOUR=$hour;BYMINUTE=$minute;BYSECOND=$second';
 
     String baseRRule = periodWidgets[frequencyNotifier.value].getRRule();
     // Remove any existing time parts from the base RRule to avoid duplicates
@@ -219,52 +226,51 @@ class RRuleGenerator extends StatelessWidget {
                 buildContainer(
                   child: Column(
                     children: [
-                      if (period != 4)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: buildContainer(
-                                child: buildElement(
-                                  title: 'Time',
-                                  style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
-                                  child: ValueListenableBuilder<TimeOfDay>(
-                                    valueListenable: timeNotifier,
-                                    builder: (context, time, child) {
-                                      if (time == const TimeOfDay(hour: 0, minute: 0) && initialDate != null) {
-                                        final initialTime = TimeOfDay.fromDateTime(initialDate!);
-                                        timeNotifier.value = initialTime;
-                                        time = initialTime;
-                                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                                          valueChanged();
-                                        });
-                                      }
-                                      return TextField(
-                                        key: ValueKey(timeNotifier.value),
-                                        readOnly: true,
-                                        controller: TextEditingController(
-                                          text: time.format(context),
-                                        ),
-                                        decoration: const InputDecoration(
-                                          suffixIcon: Icon(Icons.access_time),
-                                        ),
-                                        onTap: () async {
-                                          final TimeOfDay? picked = await showTimePicker(
-                                            context: context,
-                                            initialTime: time,
-                                          );
-                                          if (picked != null) {
-                                            timeNotifier.value = picked;
-                                          }
-                                          valueChanged();
-                                        },
-                                      );
-                                    },
-                                  ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: buildContainer(
+                              child: buildElement(
+                                title: 'Time',
+                                style: const TextStyle().copyWith(color: Theme.of(context).colorScheme.onSurface),
+                                child: ValueListenableBuilder<TimeOfDay>(
+                                  valueListenable: timeNotifier,
+                                  builder: (context, time, child) {
+                                    if (time == const TimeOfDay(hour: 0, minute: 0) && initialDate != null) {
+                                      final initialTime = TimeOfDay.fromDateTime(initialDate!);
+                                      timeNotifier.value = initialTime;
+                                      time = initialTime;
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        valueChanged();
+                                      });
+                                    }
+                                    return TextField(
+                                      key: ValueKey(timeNotifier.value),
+                                      readOnly: true,
+                                      controller: TextEditingController(
+                                        text: time.format(context),
+                                      ),
+                                      decoration: const InputDecoration(
+                                        suffixIcon: Icon(Icons.access_time),
+                                      ),
+                                      onTap: () async {
+                                        final TimeOfDay? picked = await showTimePicker(
+                                          context: context,
+                                          initialTime: time,
+                                        );
+                                        if (picked != null) {
+                                          timeNotifier.value = picked;
+                                        }
+                                        valueChanged();
+                                      },
+                                    );
+                                  },
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
+                      ),
                       buildContainer(
                         child: Row(
                           children: [
